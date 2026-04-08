@@ -1,0 +1,38 @@
+<% content_for :title, "Dashboard — VaultShare" %>
+
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+  <p class="text-gray-400 text-sm mt-1">Welcome back, <%= current_user.email %></p>
+</div>
+
+<%# Stat Cards (placeholder — will be wired up as we build features) %>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Libraries</p>
+    <p class="text-3xl font-bold text-white mt-1">0</p>
+  </div>
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Collections</p>
+    <p class="text-3xl font-bold text-white mt-1">0</p>
+  </div>
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Assets</p>
+    <p class="text-3xl font-bold text-white mt-1">0</p>
+  </div>
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Recent Activity</p>
+    <p class="text-3xl font-bold text-white mt-1">0</p>
+  </div>
+</div>
+
+<%# Empty State %>
+<div class="bg-gray-900 border border-gray-800 border-dashed rounded-2xl p-12 text-center">
+  <div class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+    <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+    </svg>
+  </div>
+  <h3 class="text-white font-semibold mb-1">No libraries yet</h3>
+  <p class="text-gray-500 text-sm">Create your first library to start organizing assets.</p>
+</div>
