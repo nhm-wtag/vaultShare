@@ -1,0 +1,108 @@
+<% content_for :title, "Edit #{@asset.title} — VaultShare" %>
+
+<div class="max-w-lg">
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+      <%= link_to library_path(@library), class: "hover:text-gray-300 transition" do %><%= @library.name %><% end %>
+      <span>/</span>
+      <%= link_to library_collection_path(@library, @collection), class: "hover:text-gray-300 transition" do %><%= @collection.name %><% end %>
+      <span>/</span>
+      <%= link_to library_collection_asset_path(@library, @collection, @asset), class: "hover:text-gray-300 transition" do %><%= @asset.title %><% end %>
+    </div>
+    <h1 class="text-xl font-bold text-white">Edit Asset</h1>
+  </div>
+
+  <%# Metadata form %>
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-4">
+    <h2 class="text-sm font-semibold text-gray-300 mb-4">Details</h2>
+    <%= form_with model: [@library, @collection, @asset], class: "space-y-5" do |f| %>
+      <% if @asset.errors.any? %>
+        <div class="bg-red-900/40 border border-red-700 rounded-lg px-4 py-3">
+          <ul class="list-disc list-inside text-red-400 text-sm">
+            <% @asset.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div>
+        <%= f.label :title, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.text_field :title,
+            class: "w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-lg
+                    px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" %>
+      </div>
+
+      <div>
+        <%= f.label :description, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.text_area :description, rows: 3,
+            class: "w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500 rounded-lg
+                    px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none",
+            placeholder: "Optional description" %>
+      </div>
+
+      <div>
+        <%= f.label :files, "Add More Files", class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <div class="border border-dashed border-gray-700 rounded-xl px-4 py-5 text-center hover:border-gray-600 transition">
+          <%= f.file_field :files, multiple: true, accept: "image/*,application/pdf,audio/*",
+              class: "hidden", id: "edit-file-input" %>
+          <label for="edit-file-input" class="cursor-pointer text-sm text-gray-400 hover:text-white transition">
+            Click to attach additional files
+          </label>
+        </div>
+        <p id="edit-file-name" class="text-xs text-gray-500 mt-1.5"></p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <%= f.submit "Save Changes",
+            class: "bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-lg transition cursor-pointer" %>
+        <%= link_to "Cancel", library_collection_asset_path(@library, @collection, @asset),
+            class: "text-sm text-gray-500 hover:text-gray-300 px-4 py-2.5 transition" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Attached files management %>
+  <% if @asset.files.attached? %>
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+      <h2 class="text-sm font-semibold text-gray-300 mb-4">
+        Attached Files (<%= @asset.files.count %>)
+      </h2>
+      <div class="space-y-2">
+        <% @asset.files.each do |file| %>
+          <div class="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <% type = file.content_type %>
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+                <%= type.start_with?('image/') ? 'bg-indigo-600/20' :
+                    type == 'application/pdf' ? 'bg-red-600/20' : 'bg-gray-700' %>">
+                <svg class="w-4 h-4 <%= type.start_with?('image/') ? 'text-indigo-400' :
+                    type == 'application/pdf' ? 'text-red-400' : 'text-gray-400' %>"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm text-gray-300 truncate"><%= file.filename %></p>
+                <p class="text-xs text-gray-600"><%= number_to_human_size(file.byte_size) %></p>
+              </div>
+            </div>
+            <%= button_to "Remove",
+                remove_file_library_collection_asset_path(@library, @collection, @asset, signed_id: file.signed_id),
+                method: :delete,
+                data: { turbo_confirm: "Remove #{file.filename}?" },
+                class: "text-xs text-red-400 hover:text-red-300 border border-red-800/50 px-3 py-1 rounded-lg transition cursor-pointer bg-transparent flex-shrink-0 ml-3" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  document.getElementById('edit-file-input').addEventListener('change', function(e) {
+    const names = Array.from(e.target.files).map(f => f.name).join(', ');
+    document.getElementById('edit-file-name').textContent = names;
+  });
+</script>

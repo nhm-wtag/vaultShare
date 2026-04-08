@@ -65,13 +65,37 @@ On first boot, the `web` container automatically:
 - Creates the PostgreSQL database
 - Runs all migrations
 
-### 5. Open the app
+### 5. Install Active Storage and run migrations
+
+Active Storage tables must be created before seeding:
+
+```bash
+docker compose exec web rails active_storage:install db:migrate
+```
+
+### 6. Load seed data (optional but recommended)
+
+Populates the database with demo users, libraries, collections, assets, comments, and activity logs so you can explore the app immediately:
+
+```bash
+docker compose exec web rails db:seed
+```
+
+Demo accounts (password: `password123`):
+
+| Email | Role |
+|---|---|
+| `admin@vaultshare.com` | Admin |
+| `designer@vaultshare.com` | Contributor |
+| `viewer@vaultshare.com` | Viewer |
+
+### 7. Open the app
 
 ```
 http://localhost:3000
 ```
 
-You'll be redirected to the login page. Register a new account to get started.
+Log in with one of the demo accounts above, or register a new account.
 
 ---
 
@@ -94,33 +118,39 @@ All Rails commands run inside the container via `docker compose run --rm web`.
 **Database**
 ```bash
 # Run pending migrations
-docker compose run --rm web bundle exec rails db:migrate
+docker compose exec web rails db:migrate
+
+# Install Active Storage tables
+docker compose exec web rails active_storage:install db:migrate
+
+# Seed demo data
+docker compose exec web rails db:seed
 
 # Reset (drop + recreate + migrate + seed)
-docker compose run --rm web bundle exec rails db:reset
+docker compose exec web rails db:reset db:seed
 
 # Open a database console
-docker compose run --rm web bundle exec rails dbconsole
+docker compose exec web rails dbconsole
 ```
 
 **Rails Console**
 ```bash
-docker compose run --rm web bundle exec rails console
+docker compose exec web rails console
 ```
 
 **Generate a migration**
 ```bash
-docker compose run --rm web bundle exec rails generate migration AddFieldToTable field:type
+docker compose exec web rails generate migration AddFieldToTable field:type
 ```
 
 **Run tests**
 ```bash
-docker compose run --rm web bundle exec rails test
+docker compose exec web rails test
 ```
 
 **Recompile CSS manually**
 ```bash
-docker compose run --rm web bundle exec rails tailwindcss:build
+docker compose exec web rails tailwindcss:build
 ```
 
 **Rebuild after Gemfile changes**
@@ -143,7 +173,7 @@ New accounts default to `viewer`. Roles are assigned via the Rails console.
 
 **Promote a user to admin:**
 ```bash
-docker compose run --rm web bundle exec rails console
+docker compose exec web rails console
 ```
 ```ruby
 User.find_by(email: "you@example.com").update!(role: "admin")
@@ -170,31 +200,46 @@ User.find_by(email: "you@example.com").update!(role: "admin")
 ```
 app/
 ├── controllers/
-│   ├── application_controller.rb   # Auth + post-sign-in redirect
-│   ├── dashboard_controller.rb     # Main dashboard
-│   └── api/v1/                     # JSON API endpoints
+│   ├── application_controller.rb    # Auth + Pundit + post-sign-in redirect
+│   ├── dashboard_controller.rb      # Dashboard
+│   ├── libraries_controller.rb
+│   ├── collections_controller.rb
+│   ├── assets_controller.rb         # Upload, download, share, remove file
+│   ├── comments_controller.rb       # Turbo Stream responses
+│   ├── shared_assets_controller.rb  # Public share link (/s/:token)
+│   ├── activity_logs_controller.rb
+│   └── api/v1/                      # JSON API endpoints
 ├── models/
-│   └── user.rb                     # Devise auth + role enum
+│   ├── user.rb          # Devise + role enum (viewer/contributor/admin)
+│   ├── library.rb       # visibility enum (restricted/shared)
+│   ├── collection.rb
+│   ├── asset.rb         # Active Storage, share tokens, file metadata
+│   ├── comment.rb
+│   └── activity_log.rb
+├── policies/            # Pundit authorization policies
 ├── views/
 │   ├── layouts/
-│   │   ├── application.html.erb    # Authenticated shell (navbar + flash)
-│   │   └── devise.html.erb         # Auth pages (centered card)
-│   ├── devise/                     # Custom login + register views
-│   └── dashboard/                  # Dashboard views
+│   │   ├── application.html.erb    # Authenticated shell (sidebar nav)
+│   │   └── devise.html.erb         # Auth + shared asset pages
+│   └── ...
 └── assets/
     └── tailwind/
         └── application.css         # Tailwind v4 entry point (@import "tailwindcss")
 
+db/
+├── migrate/
+└── seeds.rb             # Demo users, libraries, assets, comments
+
 config/
-├── database.yml                    # Reads DB_* env vars for Docker
+├── database.yml         # Reads DB_* env vars
 ├── routes.rb
 └── initializers/
-    └── sidekiq.rb                  # Redis connection config
+    └── sidekiq.rb
 
-docker-compose.yml                  # All five services
-Dockerfile.dev                      # Dev image — Ruby 3.3.6 slim
-.env                                # Local secrets (gitignored)
-.env.example                        # Committed template
+docker-compose.yml       # web, db, redis, sidekiq, css
+Dockerfile.dev           # Ruby 3.3.6 slim
+.env                     # Local secrets (gitignored)
+.env.example             # Committed template
 ```
 
 ---

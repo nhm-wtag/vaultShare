@@ -1,0 +1,49 @@
+<% content_for :title, "Libraries — VaultShare" %>
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-xl font-bold text-white">Libraries</h1>
+    <p class="text-gray-500 text-sm mt-0.5">Organize your digital assets into libraries</p>
+  </div>
+  <% if policy(Library.new).create? %>
+    <%= link_to "New Library", new_library_path,
+        class: "bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition" %>
+  <% end %>
+</div>
+
+<% if @libraries.any? %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <% @libraries.each do |library| %>
+      <%= link_to library_path(library), class: "group bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition" do %>
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-10 h-10 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded-full <%= library.shared? ? 'bg-emerald-900/50 text-emerald-400' : 'bg-gray-800 text-gray-500' %>">
+            <%= library.shared? ? "Shared" : "Private" %>
+          </span>
+        </div>
+        <h3 class="text-white font-semibold group-hover:text-indigo-300 transition"><%= library.name %></h3>
+        <p class="text-xs text-gray-500 mt-1"><%= pluralize(library.collections.size, "collection") %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="bg-gray-900 border border-gray-800 border-dashed rounded-2xl p-16 text-center">
+    <div class="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+      <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+      </svg>
+    </div>
+    <h3 class="text-white font-semibold mb-1">No libraries yet</h3>
+    <p class="text-gray-500 text-sm mb-4">Create your first library to start organizing assets.</p>
+    <% if policy(Library.new).create? %>
+      <%= link_to "Create Library", new_library_path,
+          class: "bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition inline-block" %>
+    <% end %>
+  </div>
+<% end %>

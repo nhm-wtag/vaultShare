@@ -1,0 +1,188 @@
+<% content_for :title, "#{@asset.title} — VaultShare" %>
+
+<div class="flex gap-8">
+
+  <%# Left: Asset preview + metadata %>
+  <div class="flex-1 min-w-0">
+    <%# Breadcrumb %>
+    <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+      <%= link_to library_path(@library), class: "hover:text-gray-300 transition" do %><%= @library.name %><% end %>
+      <span>/</span>
+      <%= link_to library_collection_path(@library, @collection), class: "hover:text-gray-300 transition" do %><%= @collection.name %><% end %>
+      <span>/</span>
+      <span class="text-gray-400 truncate"><%= @asset.title %></span>
+    </div>
+
+    <%# Title + Actions %>
+    <div class="flex items-start justify-between mb-5">
+      <h1 class="text-xl font-bold text-white break-words"><%= @asset.title %></h1>
+      <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+        <% if policy(@asset).update? %>
+          <%= link_to "Edit", edit_library_collection_asset_path(@library, @collection, @asset),
+              class: "text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 px-3 py-1.5 rounded-lg transition" %>
+        <% end %>
+        <% if policy(@asset).download? && @asset.files.attached? %>
+          <%= link_to "Download", download_library_collection_asset_path(@library, @collection, @asset),
+              class: "text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-600 px-3 py-1.5 rounded-lg transition" %>
+        <% end %>
+        <% if policy(@asset).destroy? %>
+          <%= button_to "Delete", library_collection_asset_path(@library, @collection, @asset), method: :delete,
+              data: { turbo_confirm: "Delete this asset permanently?" },
+              class: "text-sm text-red-400 hover:text-red-300 border border-red-800 hover:border-red-700 px-3 py-1.5 rounded-lg transition cursor-pointer bg-transparent" %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# File Preview %>
+    <% if @asset.files.attached? %>
+      <% file = @asset.files.first %>
+      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-5">
+        <% if @asset.image? %>
+          <%= image_tag url_for(file), class: "w-full max-h-96 object-contain bg-gray-950", alt: @asset.title %>
+        <% elsif @asset.audio? %>
+          <div class="p-6">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-14 h-14 bg-indigo-600/20 rounded-xl flex items-center justify-center">
+                <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-white font-medium"><%= file.filename %></p>
+                <p class="text-xs text-gray-500"><%= @asset.formatted_size %></p>
+              </div>
+            </div>
+            <audio controls class="w-full">
+              <source src="<%= url_for(file) %>" type="<%= file.content_type %>">
+            </audio>
+          </div>
+        <% elsif @asset.pdf? %>
+          <div class="p-6 flex items-center gap-4">
+            <div class="w-14 h-14 bg-red-600/20 rounded-xl flex items-center justify-center">
+              <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-white font-medium"><%= file.filename %></p>
+              <p class="text-xs text-gray-500"><%= @asset.formatted_size %></p>
+              <%= link_to "Open PDF", url_for(file), target: "_blank",
+                  class: "text-xs text-indigo-400 hover:text-indigo-300 transition" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <%# Extra files if more than one %>
+      <% if @asset.files.count > 1 %>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-5">
+          <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">All Files (<%= @asset.files.count %>)</p>
+          <div class="space-y-2">
+            <% @asset.files.each do |f| %>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-300 truncate"><%= f.filename %></span>
+                <span class="text-xs text-gray-600 ml-2 flex-shrink-0">
+                  <%= number_to_human_size(f.byte_size) %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%# Metadata %>
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
+      <% if @asset.description.present? %>
+        <div>
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Description</p>
+          <p class="text-sm text-gray-300"><%= @asset.description %></p>
+        </div>
+      <% end %>
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p class="text-xs text-gray-500">Type</p>
+          <p class="text-gray-300"><%= @asset.file_type&.split("/")&.last&.upcase || "—" %></p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Size</p>
+          <p class="text-gray-300"><%= @asset.formatted_size %></p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Uploaded</p>
+          <p class="text-gray-300"><%= @asset.created_at.strftime("%b %d, %Y") %></p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">Collection</p>
+          <p class="text-gray-300"><%= @collection.name %></p>
+        </div>
+      </div>
+    </div>
+
+    <%# Share Link Panel %>
+    <% if policy(@asset).update? %>
+      <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mt-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Share Link</p>
+        <% if @asset.share_link_active? %>
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <input type="text" readonly
+                value="<%= shared_asset_url(token: @asset.share_token) %>"
+                class="flex-1 bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-2 focus:outline-none"
+                id="share-url">
+              <button onclick="navigator.clipboard.writeText(document.getElementById('share-url').value)"
+                class="text-xs text-indigo-400 hover:text-indigo-300 border border-indigo-800 px-3 py-2 rounded-lg transition cursor-pointer whitespace-nowrap">
+                Copy
+              </button>
+            </div>
+            <p class="text-xs text-gray-600">
+              Expires <%= time_ago_in_words(@asset.share_token_expires_at) %> from now
+              (<%= @asset.share_token_expires_at.strftime("%b %d, %Y") %>)
+            </p>
+            <%= button_to "Revoke Link", revoke_share_library_collection_asset_path(@library, @collection, @asset),
+                method: :delete,
+                data: { turbo_confirm: "Revoke this share link?" },
+                class: "text-xs text-red-400 hover:text-red-300 border border-red-800 hover:border-red-700 px-3 py-1.5 rounded-lg transition cursor-pointer bg-transparent" %>
+          </div>
+        <% else %>
+          <p class="text-xs text-gray-500 mb-3">Generate a public link for external viewers. No login required.</p>
+          <%= form_with url: share_library_collection_asset_path(@library, @collection, @asset), method: :post, class: "flex items-center gap-2" do |f| %>
+            <%= f.select :expires_in,
+                [["Expires in 1 day", "1"], ["Expires in 7 days", "7"], ["Expires in 30 days", "30"]],
+                {},
+                class: "bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-2 focus:outline-none" %>
+            <%= f.submit "Generate Link",
+                class: "bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition cursor-pointer" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Right: Comments %>
+  <div class="w-80 flex-shrink-0">
+    <h2 class="text-sm font-semibold text-gray-300 mb-4">Comments (<%= @comments.count %>)</h2>
+
+    <% if policy(Comment.new(asset: @asset)).create? %>
+      <div id="comment_form" class="mb-4">
+        <%= form_with model: [@library, @collection, @asset, Comment.new], class: "space-y-2" do |f| %>
+          <%= f.text_area :content, rows: 3, placeholder: "Add a comment…",
+              class: "w-full bg-gray-900 border border-gray-700 text-white placeholder-gray-500 rounded-lg
+                      px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none" %>
+          <%= f.submit "Post",
+              class: "bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition cursor-pointer" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div id="comments" class="space-y-3">
+      <%= render @comments %>
+    </div>
+    <% if @comments.empty? %>
+      <p class="text-gray-600 text-sm text-center py-8">No comments yet.</p>
+    <% end %>
+  </div>
+
+</div>

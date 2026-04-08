@@ -1,28 +1,99 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Vaultshare" %></title>
+    <title><%= content_for(:title) || "VaultShare" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Vaultshare">
-    <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="bg-gray-950 text-gray-100 h-screen overflow-hidden flex">
+
+    <%# Sidebar %>
+    <% if user_signed_in? %>
+      <aside class="w-56 bg-gray-900 border-r border-gray-800 flex flex-col flex-shrink-0">
+        <%# Brand %>
+        <div class="px-4 py-5 border-b border-gray-800">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <span class="text-white font-bold text-base tracking-tight">VaultShare</span>
+          </div>
+        </div>
+
+        <%# Nav %>
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <%= link_to dashboard_path,
+              class: "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition
+                      #{request.path == dashboard_path ? 'bg-indigo-600/20 text-indigo-300' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}" do %>
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Dashboard
+          <% end %>
+
+          <%= link_to libraries_path,
+              class: "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition
+                      #{request.path.start_with?(libraries_path) ? 'bg-indigo-600/20 text-indigo-300' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}" do %>
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+            Libraries
+          <% end %>
+
+          <%= link_to activity_logs_path,
+              class: "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition
+                      #{request.path.start_with?(activity_logs_path) ? 'bg-indigo-600/20 text-indigo-300' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}" do %>
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Activity
+          <% end %>
+        </nav>
+
+        <%# User footer %>
+        <div class="px-4 py-4 border-t border-gray-800">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-7 h-7 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold text-gray-300">
+              <%= current_user.email.first.upcase %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-white font-medium truncate"><%= current_user.email.split("@").first %></p>
+              <p class="text-xs text-gray-500 capitalize"><%= current_user.role %></p>
+            </div>
+          </div>
+          <%= button_to "Sign out", destroy_user_session_path, method: :delete,
+              class: "w-full text-left text-xs text-gray-500 hover:text-gray-300 transition cursor-pointer bg-transparent border-0 p-0" %>
+        </div>
+      </aside>
+    <% end %>
+
+    <%# Main content area %>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <% if notice %>
+        <div class="bg-indigo-600/20 border-b border-indigo-600/30 text-indigo-300 px-6 py-2.5 text-sm text-center flex-shrink-0">
+          <%= notice %>
+        </div>
+      <% end %>
+      <% if alert %>
+        <div class="bg-red-600/20 border-b border-red-600/30 text-red-300 px-6 py-2.5 text-sm text-center flex-shrink-0">
+          <%= alert %>
+        </div>
+      <% end %>
+
+      <main class="flex-1 overflow-y-auto px-6 py-8">
+        <%= yield %>
+      </main>
+    </div>
+
   </body>
 </html>
