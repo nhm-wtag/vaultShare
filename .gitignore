@@ -1,6 +1,7 @@
 # Ignore bundler config.
 /.bundle
 
+./DS_Store
 # Ignore all environment files (except templates).
 /.env*
 !/.env.example
