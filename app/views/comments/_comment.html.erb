@@ -1,0 +1,25 @@
+<div id="comment_<%= comment.id %>" class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold text-gray-300">
+        <%= comment.user.email.first.upcase %>
+      </div>
+      <span class="text-xs font-medium text-gray-300"><%= comment.user.email.split("@").first %></span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-gray-600"><%= time_ago_in_words(comment.created_at) %> ago</span>
+      <% if policy(comment).destroy? %>
+        <%= button_to "×",
+            library_collection_asset_comment_path(
+              comment.asset.collection.library,
+              comment.asset.collection,
+              comment.asset,
+              comment
+            ),
+            method: :delete,
+            class: "text-gray-600 hover:text-red-400 text-sm transition cursor-pointer bg-transparent border-0 p-0 leading-none" %>
+      <% end %>
+    </div>
+  </div>
+  <p class="text-sm text-gray-300 leading-relaxed"><%= comment.content %></p>
+</div>

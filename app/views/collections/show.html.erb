@@ -1,0 +1,75 @@
+<% content_for :title, "#{@collection.name} — VaultShare" %>
+
+<%# Breadcrumb + Header %>
+<div class="flex items-start justify-between mb-6">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+      <%= link_to libraries_path, class: "hover:text-gray-300 transition" do %>Libraries<% end %>
+      <span>/</span>
+      <%= link_to library_path(@library), class: "hover:text-gray-300 transition" do %><%= @library.name %><% end %>
+      <span>/</span>
+      <span class="text-gray-400"><%= @collection.name %></span>
+    </div>
+    <h1 class="text-xl font-bold text-white"><%= @collection.name %></h1>
+    <p class="text-xs text-gray-500 mt-0.5"><%= pluralize(@assets.size, "asset") %></p>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <% if policy(@collection).destroy? %>
+      <%= button_to "Delete", library_collection_path(@library, @collection), method: :delete,
+          data: { turbo_confirm: "Delete this collection and all its assets?" },
+          class: "text-sm text-red-400 hover:text-red-300 border border-red-800 hover:border-red-700 px-3 py-1.5 rounded-lg transition cursor-pointer bg-transparent" %>
+    <% end %>
+    <% if policy(Asset.new(collection: @collection)).create? %>
+      <%= link_to "Upload Asset", new_library_collection_asset_path(@library, @collection),
+          class: "bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-1.5 rounded-lg transition" %>
+    <% end %>
+  </div>
+</div>
+
+<%# Assets grid %>
+<% if @assets.any? %>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <% @assets.each do |asset| %>
+      <%= link_to library_collection_asset_path(@library, @collection, asset),
+          class: "group bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-gray-700 transition" do %>
+
+        <%# Thumbnail area %>
+        <div class="aspect-square bg-gray-800 flex items-center justify-center overflow-hidden">
+          <% if asset.files.attached? && asset.image? %>
+            <%= image_tag asset.files.first.variant(resize_to_fill: [300, 300]),
+                class: "w-full h-full object-cover", alt: asset.title %>
+          <% elsif asset.pdf? %>
+            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+          <% elsif asset.audio? %>
+            <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+            </svg>
+          <% else %>
+            <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+          <% end %>
+        </div>
+
+        <div class="p-3">
+          <p class="text-sm text-white font-medium truncate group-hover:text-indigo-300 transition"><%= asset.title %></p>
+          <p class="text-xs text-gray-500 mt-0.5"><%= asset.formatted_size %></p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="bg-gray-900 border border-gray-800 border-dashed rounded-2xl p-12 text-center">
+    <p class="text-gray-500 text-sm mb-3">No assets uploaded yet.</p>
+    <% if policy(Asset.new(collection: @collection)).create? %>
+      <%= link_to "Upload your first asset", new_library_collection_asset_path(@library, @collection),
+          class: "text-indigo-400 hover:text-indigo-300 text-sm transition" %>
+    <% end %>
+  </div>
+<% end %>
