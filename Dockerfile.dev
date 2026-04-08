@@ -1,0 +1,27 @@
+# Development Dockerfile
+FROM ruby:3.3.6-slim
+
+WORKDIR /rails
+
+# Install system dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      git \
+      libpq-dev \
+      libvips \
+      libyaml-dev \
+      pkg-config \
+      curl \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+# Copy app code (overridden by volume mount in docker-compose)
+COPY . .
+
+EXPOSE 3000
+
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]

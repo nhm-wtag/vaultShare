@@ -1,0 +1,81 @@
+<div class="w-full max-w-md">
+  <%# Logo / Brand %>
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center gap-2 mb-2">
+      <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <span class="text-white text-2xl font-bold tracking-tight">VaultShare</span>
+    </div>
+    <p class="text-gray-400 text-sm">Create your account</p>
+  </div>
+
+  <%# Validation errors %>
+  <% if resource.errors.any? %>
+    <div class="bg-red-900/40 border border-red-700 rounded-lg px-4 py-3 mb-4">
+      <p class="text-red-400 text-sm font-medium mb-1">
+        <%= pluralize(resource.errors.count, "error") %> prevented sign up:
+      </p>
+      <ul class="list-disc list-inside text-red-400 text-sm space-y-0.5">
+        <% resource.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Card %>
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-8">
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+
+      <div class="space-y-5">
+        <div>
+          <%= f.label :email, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+          <%= f.email_field :email,
+              autofocus: true,
+              autocomplete: "email",
+              class: "w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500
+                      rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2
+                      focus:ring-indigo-500 focus:border-transparent transition",
+              placeholder: "you@example.com" %>
+        </div>
+
+        <div>
+          <%= f.label :password, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+          <%= f.password_field :password,
+              autocomplete: "new-password",
+              class: "w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500
+                      rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2
+                      focus:ring-indigo-500 focus:border-transparent transition",
+              placeholder: "Min. 6 characters" %>
+          <% if @minimum_password_length %>
+            <p class="text-xs text-gray-500 mt-1"><%= @minimum_password_length %> characters minimum</p>
+          <% end %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+          <%= f.password_field :password_confirmation,
+              autocomplete: "new-password",
+              class: "w-full bg-gray-800 border border-gray-700 text-white placeholder-gray-500
+                      rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2
+                      focus:ring-indigo-500 focus:border-transparent transition",
+              placeholder: "Confirm password" %>
+        </div>
+
+        <%= f.submit "Create account",
+            class: "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold
+                    rounded-lg py-2.5 px-4 text-sm transition cursor-pointer mt-2" %>
+      </div>
+    <% end %>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Already have an account?
+      <%= link_to "Sign in", new_session_path(resource_name),
+          class: "text-indigo-400 hover:text-indigo-300 font-medium transition" %>
+    </p>
+  </div>
+</div>
